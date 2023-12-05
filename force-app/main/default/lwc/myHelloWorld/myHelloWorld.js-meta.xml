@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>58.0</apiVersion>
+    <isExposed>true</isExposed>
+    <description>これは説明文</description>
+    <masterLabel>ハローワールド</masterLabel>
+    <targets>
+        <target>lightning__HomePage</target>
+        <target>lightning__AppPage</target>
+    </targets>
+    <targetConfigs>
+        <targetConfig targets="lightning__HomePage">
+            <property name="foo" type="String" description="foo です。 (lightning__HomePage)" label="ふー" placeholder="例) bar" required="true" default="foo" />
+        </targetConfig>
+        <targetConfig targets="lightning__AppPage">
+            <property name="foo" type="String" description="foo です。 (lightning__AppPage)" label="ふー" placeholder="例) bar" default="foo" />
+        </targetConfig>
+    </targetConfigs>
+</LightningComponentBundle>
