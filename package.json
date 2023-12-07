@@ -38,6 +38,9 @@
     ],
     "**/{aura,lwc}/**/*.js": [
       "eslint"
+    ],
+    "**/staticresources/**/*.{js,ts,vue}": [
+      "prettier --write"
     ]
   }
 }
