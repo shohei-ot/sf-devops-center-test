@@ -1,14 +1,5 @@
-<apex:page
-  contentType="text/html"
-  docType="html-5.0"
-  lightningStylesheets="true"
->
+<apex:page contentType="text/html" docType="html-5.0" lightningStylesheets="true">
   <div id="app"></div>
-  <script
-    src="{!URLFOR($Resource.HelloWorld2InnerPageJsApp, 'dist/index.js')}"
-  ></script>
-  <link
-    rel="stylesheet"
-    href="{!URLFOR($Resource.HelloWorld2InnerPageJsApp, 'dist/style.css')}"
-  />
+  <script src="{!URLFOR($Resource.HelloWorld2InnerPageJsApp, 'dist/index.js')}"></script>
+  <link rel="stylesheet" href="{!URLFOR($Resource.HelloWorld2InnerPageJsApp, 'dist/style.css')}"/>
 </apex:page>
