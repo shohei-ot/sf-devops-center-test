@@ -1,16 +1,8 @@
 <template>
   <div ref="root">
-    <div>
-      <p>LWC のボタンが押された回数: {{count}}</p>
-      <hr />
-    <a href="https://vitejs.dev" target="_blank">
-      <img src="/vite.svg" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://vuejs.org/" target="_blank">
-      <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-    </a>
-  </div>
-  <HelloWorld msg="Vite + Vue" />
+    <p>LWC のボタンが押された回数: {{count}}</p>
+    <button @click="handleClick">Vue app 内のボタン</button>
+    <hr />
 </div>
 </template>
 
@@ -19,6 +11,7 @@ import { defineComponent } from 'vue'
 import HelloWorld from './components/HelloWorld.vue'
 
 const APP_NAME = 'HelloWorld2InnerPageJsApp';
+const DIST_NAME = 'HelloWorld2';
 
 export default defineComponent({
   name: 'App',
@@ -31,25 +24,36 @@ export default defineComponent({
       messagePort: null as MessagePort | null
     }
   },
+  computed: {
+    registered() {
+      return this.$data.messagePort !== null;
+    }
+  },
   created() {
     console.debug('App created!')
     this.initMessageReceiver();
   },
   mounted() {
-    console.log('App mounted!')
+    // console.log('App mounted!')
     // this.postMessage('loaded', {documentBodyHeight: document.body.scrollHeight});
   },
   unmounted() {
     this.removeMessageReceiver();
   },
   methods: {
+    handleClick(e: MouseEvent){
+      e.stopPropagation();
+      e.preventDefault();
+      console.debug('handleClick', e);
+      this.postMessage('clickButton', undefined);
+    },
     initMessageReceiver(){
       console.debug('initMessageReceiver')
-      window.addEventListener('message', this.registerMessagePort);
+      window.addEventListener('message', this.registerMessagePort.bind(this));
     },
 
     removeMessageReceiver(){
-      window.removeEventListener('message', this.registerMessagePort);
+      window.removeEventListener('message', this.registerMessagePort.bind(this));
       this.$data.messagePort?.close();
     },
 
@@ -58,10 +62,11 @@ export default defineComponent({
       const {from, to, event} = e.data;
       console.debug('{from, to, event}', JSON.stringify({from,to,event}));
 
-      if (from === 'HelloWorld2' && event === 'registerMessageHandler') {
+      if (from === 'HelloWorld2' && to === APP_NAME && event === 'registerMessageHandler' && !this.registered) {
         const port2 = e.ports[0];
-        this.$data.messagePort = port2;
+        console.debug('port2', port2);
 
+        this.$data.messagePort = port2;
         this.$data.messagePort.onmessage = this.messageReceiver;
       }
     },
@@ -96,8 +101,11 @@ export default defineComponent({
     },
 
     postMessage(event: string, payload: any){
+      console.debug('postMessage')
+      console.debug('this.$data.messagePort',this.$data.messagePort)
       this.$data.messagePort?.postMessage({
         from: APP_NAME,
+        to: DIST_NAME,
         event,
         payload
       });

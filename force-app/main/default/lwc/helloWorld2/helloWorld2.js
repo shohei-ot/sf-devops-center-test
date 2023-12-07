@@ -1,4 +1,4 @@
-import { LightningElement, api } from "lwc";
+import { LightningElement, api, track } from "lwc";
 
 const VF_JS_APP_NAME = "HelloWorld2InnerPageJsApp";
 const MY_NAME = "HelloWorld2";
@@ -12,6 +12,7 @@ export default class HelloWorld2 extends LightningElement {
 
   renderedCallback() {
     this.iframeEl.addEventListener("load", () => {
+      console.debug("iframe loaded");
       this.registerMessageHandler();
     });
   }
@@ -26,52 +27,54 @@ export default class HelloWorld2 extends LightningElement {
   }
 
   /**
-   * @type {MessagePort | null}
+   * @type {number}
    */
-  currentWindowPort = null;
+  @track
+  vfAppCount = 0;
 
   /**
    * @type {MessagePort | null}
    */
-  childWindowPort = null;
+  currentWindowPort = null;
 
   registerMessageHandler() {
-    // window.addEventListener('message', this.handleMessage.bind(this));
+    console.debug("registerMessageHandler");
+
+    // // window.addEventListener('message', this.handleMessage.bind(this));
     const { port1, port2 } = new MessageChannel();
+    console.debug("{ port1, port2 }", port1, port2);
 
     this.currentWindowPort = port1;
-    this.childWindowPort = port2;
 
     // 子からのメッセージを受け付けるハンドラを登録
     this.currentWindowPort.onmessage = this.handleMessage.bind(this);
 
-    // eslint-disable-next-line no-new
-    new Promise(() => {
-      console.debug("window.postMessage", window.postMessage);
-      const data = {
-        from: MY_NAME,
-        to: VF_JS_APP_NAME,
-        event: "registerMessageHandler",
-        payload: undefined
-      };
-      console.debug("data", JSON.stringify(data));
+    console.debug("window.postMessage", window.postMessage);
+    const data = {
+      from: MY_NAME,
+      to: VF_JS_APP_NAME,
+      event: "registerMessageHandler",
+      payload: undefined
+    };
+    console.debug("data", JSON.stringify(data));
 
-      console.debug("send message to child window");
-      // 子にメッセージを送るハンドラを送信.
-      window.postMessage(data, "*", [this.childWindowPort]);
-      // FIXME: 動いてない.
-      // NOTE: `[Violation] Only request notification permission in response to a user gesture.` が出る.
-    });
+    console.debug("send message to child window");
+    // 子にメッセージを送るハンドラを送信.
+    this.iframeEl.contentWindow.postMessage(data, "*", [port2]);
+    console.debug("post done");
   }
 
   /**
    * post message to child window (Visualforce)
    *
+   * @param {string} to
+   * @param {string} event
    * @param {any} payload
    */
   postMessageToChild(to, event, payload) {
     console.debug("postMessageToChild", JSON.stringify({ to, event, payload }));
-    this.childWindowPort?.postMessage({ from: MY_NAME, to, event, payload });
+    console.debug("this.currentWindowPort", this.currentWindowPort);
+    this.currentWindowPort.postMessage({ from: MY_NAME, to, event, payload });
   }
 
   unregisterMessageHandler() {
@@ -83,13 +86,14 @@ export default class HelloWorld2 extends LightningElement {
    * window の message イベントハンドラ
    */
   handleMessage(e) {
+    console.debug("handleMessage", e);
+
     const { from, to, event, payload } = e.data;
+    console.debug("{ from, to, event, payload }", { from, to, event, payload });
 
     if (to !== MY_NAME) {
       return;
     }
-
-    console.debug("handleMessage", { from, to, event, payload });
 
     switch (from) {
       case VF_JS_APP_NAME:
@@ -99,6 +103,9 @@ export default class HelloWorld2 extends LightningElement {
             this.handleAdjustIframeHeight(height);
             break;
           }
+          case "clickButton":
+            this.vfAppCount++;
+            break;
           default:
             break;
         }
@@ -116,8 +123,11 @@ export default class HelloWorld2 extends LightningElement {
     this.iframeEl.setAttribute("height", height);
   }
 
+  /**
+   * 画面上のボタンを押した時のハンドラ
+   */
   handleClickButton(e) {
-    console.debug("handleClickButton");
+    console.debug("handleClickButton", this);
 
     e.preventDefault();
     e.stopPropagation();
